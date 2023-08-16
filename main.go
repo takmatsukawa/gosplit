@@ -46,10 +46,10 @@ func run(args []string) int {
 		splitByChunkCount(file, *chunkCount)
 	} else if *byteCount > 0 {
 		splitByByteCount(file, *byteCount)
+	} else {
+		fmt.Fprintf(os.Stderr, "invalid flag\n")
+		return 1
 	}
-
-	_ = chunkCount
-	_ = byteCount
 
 	return 0
 }

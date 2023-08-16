@@ -13,9 +13,7 @@ func TestFlagVar(t *testing.T) {
 		want int
 	}{
 		{name: "without args", args: []string{}, want: 0},
-		{name: "nagative line count", args: []string{"-l", "0"}, want: 1},
-		// {name: "test2", args: []string{"-name", "foo", "-max", "1000"}, want: 1},
-		// {name: "test3", args: []string{"-name", "", "-max", "123"}, want: 1},
+		{name: "lとnとbは同時に指定できない", args: []string{"-l", "1", "-n", "1", "-b", "1"}, want: 1},
 	}
 	for _, tt := range tests {
 		tt := tt
