@@ -13,12 +13,25 @@ var (
 )
 
 func run(args []string) int {
-	lineCount := commandLine.Int("l", 1000, "line count")
-	chunkCount := commandLine.Int("n", 0, "chunk count")
-	byteCount := commandLine.Int("b", 0, "byte count")
+	lineCount := commandLine.Int("l", 1000, "Create split files line_count lines in length.")
+	chunkCount := commandLine.Int("n", 0, "Split file into chunk_count smaller files.  The first n - 1 files will be of size (size of file / chunk_count ) and the last file will contain the remaining bytes.")
+	byteCount := commandLine.Int("b", 0, "Create split files byte_count bytes in length.")
 	if err := commandLine.Parse(args); err != nil {
 		fmt.Fprintf(os.Stderr, "cannnot parse flags: %v\n", err)
 	}
+
+	var file *os.File
+	var err error
+	if commandLine.NArg() == 0 {
+		file = os.Stdin
+	} else {
+		file, err = os.Open(commandLine.Arg(0))
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot open file: %v\n", err)
+		return 1
+	}
+
 	if *lineCount <= 0 {
 		fmt.Fprintf(os.Stderr, "line count must be positive\n")
 		return 1
@@ -28,7 +41,7 @@ func run(args []string) int {
 	_ = chunkCount
 	_ = byteCount
 
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(file)
 	filename := prefix + "aa"
 
 	f, _ := os.Create(filename)

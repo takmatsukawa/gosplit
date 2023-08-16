@@ -1,0 +1,20 @@
+func incrementString(s string) string {
+	runes := []rune(s)
+	carry := true
+
+	for i := len(runes) - 1; i >= 0; i-- {
+		if runes[i] < 'z' {
+			runes[i]++
+			carry = false
+			break
+		} else {
+			runes[i] = 'a'
+		}
+	}
+
+	if carry {
+		runes = append([]rune{'a'}, runes...)
+	}
+
+	return string(runes)
+}
