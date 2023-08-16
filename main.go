@@ -13,7 +13,7 @@ var (
 )
 
 func run(args []string) int {
-	lineCount := commandLine.Int("l", 1000, "Create split files line_count lines in length.")
+	lineCount := commandLine.Int("l", 0, "Create split files line_count lines in length.")
 	chunkCount := commandLine.Int("n", 0, "Split file into chunk_count smaller files.  The first n - 1 files will be of size (size of file / chunk_count ) and the last file will contain the remaining bytes.")
 	byteCount := commandLine.Int("b", 0, "Create split files byte_count bytes in length.")
 	if err := commandLine.Parse(args); err != nil {
@@ -38,31 +38,18 @@ func run(args []string) int {
 		return 1
 	}
 
-	if *lineCount <= 0 {
-		fmt.Fprintf(os.Stderr, "line count must be positive: %d\n", *lineCount)
-		return 1
+	if commandLine.NFlag() == 0 {
+		splitByLineCount(file, 1000)
+	} else if *lineCount > 0 {
+		splitByLineCount(file, *lineCount)
+	} else if *chunkCount > 0 {
+		splitByChunkCount(file, *chunkCount)
+	} else if *byteCount > 0 {
+		splitByByteCount(file, *byteCount)
 	}
 
 	_ = chunkCount
 	_ = byteCount
-
-	scanner := bufio.NewScanner(file)
-	filename := prefix + "aa"
-
-	f, _ := os.Create(filename)
-	defer f.Close()
-
-	l := *lineCount
-	for scanner.Scan() {
-		f.WriteString(scanner.Text() + "\n")
-		l--
-		if l == 0 {
-			filename = incrementString(filename)
-			f, _ = os.Create(filename)
-			defer f.Close()
-			l = *lineCount
-		}
-	}
 
 	return 0
 }
@@ -86,6 +73,51 @@ func incrementString(s string) string {
 	}
 
 	return string(runes)
+}
+
+func splitByLineCount(file *os.File, lineCount int) {
+	scanner := bufio.NewScanner(file)
+	filename := prefix + "aa"
+
+	f, _ := os.Create(filename)
+	defer f.Close()
+
+	l := lineCount
+	for scanner.Scan() {
+		f.WriteString(scanner.Text() + "\n")
+		l--
+		if l == 0 {
+			filename = incrementString(filename)
+			f, _ = os.Create(filename)
+			defer f.Close()
+			l = lineCount
+		}
+	}
+}
+
+func splitByChunkCount(file *os.File, chunkCount int) {
+	// todo
+}
+
+func splitByByteCount(file *os.File, byteCount int) {
+	reader := bufio.NewReader(file)
+	filename := prefix + "aa"
+	buffer := make([]byte, byteCount)
+
+	f, _ := os.Create(filename)
+	defer f.Close()
+
+	for {
+		_, err := reader.Read(buffer)
+		if err != nil {
+			break
+		}
+
+		f.Write(buffer)
+		filename = incrementString(filename)
+		f, _ = os.Create(filename)
+		defer f.Close()
+	}
 }
 
 func main() {
