@@ -19,7 +19,7 @@ func TestFlagVar(t *testing.T) {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			commandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-			if got := run(tt.args); got != tt.want {
+			if got := run(tt.args, t.TempDir()); got != tt.want {
 				t.Errorf("%v: run() = %v, want %v", tt.name, got, tt.want)
 			}
 		})
