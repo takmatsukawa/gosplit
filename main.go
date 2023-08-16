@@ -46,10 +46,10 @@ func run(args []string) int {
 		splitByChunkCount(file, *chunkCount)
 	} else if *byteCount > 0 {
 		splitByByteCount(file, *byteCount)
+	} else {
+		fmt.Fprintf(os.Stderr, "invalid flag\n")
+		return 1
 	}
-
-	_ = chunkCount
-	_ = byteCount
 
 	return 0
 }
@@ -96,46 +96,39 @@ func splitByLineCount(file *os.File, lineCount int) {
 }
 
 func splitByChunkCount(file *os.File, chunkCount int) {
-	filename := prefix + "aa"
-
 	fi, _ := file.Stat()
 
 	size := fi.Size() / int64(chunkCount)
 
-	f, _ := os.Create(filename)
-	defer f.Close()
+	for i, filename := 0, prefix+"aa"; i < chunkCount; i, filename = i+1, incrementString(filename) {
+		f, _ := os.Create(filename)
+		defer f.Close()
 
-	for i := 0; i < chunkCount-1; i++ {
+		// 最後のチャンクでは残り全て読み込む
 		if i == chunkCount-1 {
-			size = fi.Size()
+			size = fi.Size() - size*int64(i)
 		}
+
 		buffer := make([]byte, size)
 		file.Read(buffer)
 		f.Write(buffer)
-		filename = incrementString(filename)
-		f, _ = os.Create(filename)
-		defer f.Close()
 	}
 }
 
 func splitByByteCount(file *os.File, byteCount int) {
 	reader := bufio.NewReader(file)
-	filename := prefix + "aa"
-	buffer := make([]byte, byteCount)
 
-	f, _ := os.Create(filename)
-	defer f.Close()
-
-	for {
+	for filename := prefix + "aa"; ; filename = incrementString(filename) {
+		buffer := make([]byte, byteCount)
 		_, err := reader.Read(buffer)
 		if err != nil {
 			break
 		}
 
-		f.Write(buffer)
-		filename = incrementString(filename)
-		f, _ = os.Create(filename)
+		f, _ := os.Create(filename)
 		defer f.Close()
+
+		f.Write(buffer)
 	}
 }
 
