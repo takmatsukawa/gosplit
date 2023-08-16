@@ -117,22 +117,18 @@ func splitByChunkCount(file *os.File, chunkCount int) {
 
 func splitByByteCount(file *os.File, byteCount int) {
 	reader := bufio.NewReader(file)
-	filename := prefix + "aa"
-	buffer := make([]byte, byteCount)
 
-	f, _ := os.Create(filename)
-	defer f.Close()
-
-	for {
+	for filename := prefix + "aa"; ; filename = incrementString(filename) {
+		buffer := make([]byte, byteCount)
 		_, err := reader.Read(buffer)
 		if err != nil {
 			break
 		}
 
-		f.Write(buffer)
-		filename = incrementString(filename)
-		f, _ = os.Create(filename)
+		f, _ := os.Create(filename)
 		defer f.Close()
+
+		f.Write(buffer)
 	}
 }
 
