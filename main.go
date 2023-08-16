@@ -32,12 +32,17 @@ func run(args []string) int {
 		return 1
 	}
 
-	if *lineCount <= 0 {
-		fmt.Fprintf(os.Stderr, "line count must be positive\n")
+	// lとnとbは同時に指定できない
+	if commandLine.NFlag() > 1 {
+		fmt.Fprintf(os.Stderr, "cannot split in more than one way\n")
 		return 1
 	}
 
-	_ = lineCount
+	if *lineCount <= 0 {
+		fmt.Fprintf(os.Stderr, "line count must be positive: %d\n", *lineCount)
+		return 1
+	}
+
 	_ = chunkCount
 	_ = byteCount
 
