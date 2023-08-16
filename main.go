@@ -96,25 +96,22 @@ func splitByLineCount(file *os.File, lineCount int) {
 }
 
 func splitByChunkCount(file *os.File, chunkCount int) {
-	filename := prefix + "aa"
-
 	fi, _ := file.Stat()
 
 	size := fi.Size() / int64(chunkCount)
 
-	f, _ := os.Create(filename)
-	defer f.Close()
+	for i, filename := 0, prefix+"aa"; i < chunkCount; i, filename = i+1, incrementString(filename) {
+		f, _ := os.Create(filename)
+		defer f.Close()
 
-	for i := 0; i < chunkCount-1; i++ {
+		// 最後のチャンクでは残り全て読み込む
 		if i == chunkCount-1 {
-			size = fi.Size()
+			size = fi.Size() - size*int64(i)
 		}
+
 		buffer := make([]byte, size)
 		file.Read(buffer)
 		f.Write(buffer)
-		filename = incrementString(filename)
-		f, _ = os.Create(filename)
-		defer f.Close()
 	}
 }
 
