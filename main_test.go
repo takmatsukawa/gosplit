@@ -12,7 +12,7 @@ func TestFlagVar(t *testing.T) {
 		args []string
 		want int
 	}{
-		{name: "without args", args: []string{}, want: 0},
+		{name: "引数未指定", args: []string{}, want: 0},
 		{name: "lとnとbは同時に指定できない", args: []string{"-l", "1", "-n", "1", "-b", "1"}, want: 1},
 	}
 	for _, tt := range tests {
