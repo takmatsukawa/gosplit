@@ -39,20 +39,21 @@ func run(args []string, dir string) int {
 		return 1
 	}
 
+	result := 0
 	if commandLine.NFlag() == 0 {
-		splitByLineCount(file, dir, 1000)
+		result = splitByLineCount(file, dir, 1000)
 	} else if *lineCount > 0 {
-		splitByLineCount(file, dir, *lineCount)
+		result = splitByLineCount(file, dir, *lineCount)
 	} else if *chunkCount > 0 {
-		splitByChunkCount(file, dir, *chunkCount)
+		result = splitByChunkCount(file, dir, *chunkCount)
 	} else if *byteCount > 0 {
-		splitByByteCount(file, dir, *byteCount)
+		result = splitByByteCount(file, dir, *byteCount)
 	} else {
 		fmt.Fprintf(os.Stderr, "invalid flag\n")
-		return 1
+		result = 1
 	}
 
-	return 0
+	return result
 }
 
 func incrementString(s string) string {
@@ -76,11 +77,15 @@ func incrementString(s string) string {
 	return string(runes)
 }
 
-func splitByLineCount(file *os.File, dir string, lineCount int) {
+func splitByLineCount(file *os.File, dir string, lineCount int) int {
 	scanner := bufio.NewScanner(file)
 	filename := prefix + "aa"
 
-	f, _ := os.Create(filepath.Join(dir, filename))
+	f, err := os.Create(filepath.Join(dir, filename))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
+		return 1
+	}
 	defer f.Close()
 
 	l := lineCount
@@ -89,20 +94,34 @@ func splitByLineCount(file *os.File, dir string, lineCount int) {
 		l--
 		if l == 0 {
 			filename = incrementString(filename)
-			f, _ = os.Create(filepath.Join(dir, filename))
+			f, err = os.Create(filepath.Join(dir, filename))
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
+				return 1
+			}
 			defer f.Close()
 			l = lineCount
 		}
 	}
+
+	return 0
 }
 
-func splitByChunkCount(file *os.File, dir string, chunkCount int) {
-	fi, _ := file.Stat()
+func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
+	fi, err := file.Stat()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot get file info: %v\n", err)
+		return 1
+	}
 
 	size := fi.Size() / int64(chunkCount)
 
 	for i, filename := 0, prefix+"aa"; i < chunkCount; i, filename = i+1, incrementString(filename) {
-		f, _ := os.Create(filepath.Join(dir, filename))
+		f, err := os.Create(filepath.Join(dir, filename))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
+			return 1
+		}
 		defer f.Close()
 
 		// 最後のチャンクでは残り全て読み込む
@@ -114,9 +133,11 @@ func splitByChunkCount(file *os.File, dir string, chunkCount int) {
 		file.Read(buffer)
 		f.Write(buffer)
 	}
+
+	return 0
 }
 
-func splitByByteCount(file *os.File, dir string, byteCount int) {
+func splitByByteCount(file *os.File, dir string, byteCount int) int {
 	reader := bufio.NewReader(file)
 
 	for filename := prefix + "aa"; ; filename = incrementString(filename) {
@@ -126,11 +147,17 @@ func splitByByteCount(file *os.File, dir string, byteCount int) {
 			break
 		}
 
-		f, _ := os.Create(filepath.Join(dir, filename))
+		f, err := os.Create(filepath.Join(dir, filename))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
+			return 1
+		}
 		defer f.Close()
 
 		f.Write(buffer)
 	}
+
+	return 0
 }
 
 func main() {
