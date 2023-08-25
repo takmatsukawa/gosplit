@@ -99,7 +99,6 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 				fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
 				return 1
 			}
-			defer f.Close()
 			l = lineCount
 		}
 	}
@@ -122,7 +121,6 @@ func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 			fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
 			return 1
 		}
-		defer f.Close()
 
 		// 最後のチャンクでは残り全て読み込む
 		if i == chunkCount-1 {
@@ -132,6 +130,7 @@ func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 		buffer := make([]byte, size)
 		file.Read(buffer)
 		f.Write(buffer)
+		f.Close()
 	}
 
 	return 0
@@ -152,9 +151,9 @@ func splitByByteCount(file *os.File, dir string, byteCount int) int {
 			fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
 			return 1
 		}
-		defer f.Close()
 
 		f.Write(buffer)
+		f.Close()
 	}
 
 	return 0
