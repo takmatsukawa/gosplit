@@ -111,7 +111,7 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 	fi, err := file.Stat()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot get file info: %v\n", err)
+		fmt.Fprintf(os.Stderr, "cannot determine file size\n")
 		return 1
 	}
 
