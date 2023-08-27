@@ -86,13 +86,13 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 		fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
 		return 1
 	}
-	defer f.Close()
 
 	l := lineCount
 	for scanner.Scan() {
 		f.WriteString(scanner.Text() + "\n")
 		l--
 		if l == 0 {
+			f.Close()
 			filename = incrementString(filename)
 			f, err = os.Create(filepath.Join(dir, filename))
 			if err != nil {
@@ -102,6 +102,8 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 			l = lineCount
 		}
 	}
+
+	f.Close()
 
 	return 0
 }
