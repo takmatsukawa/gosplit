@@ -62,3 +62,35 @@ func TestSplitByLineCount(t *testing.T) {
 		outputFile.Close()
 	}
 }
+
+func TestSplitByChunkCount(t *testing.T) {
+	tempDir := t.TempDir()
+
+	inputFilePath := filepath.Join(tempDir, "test.txt")
+	inputFile, _ := os.Create(inputFilePath)
+	for i := 0; i < 10; i++ {
+		inputFile.WriteString(fmt.Sprintf("%04d\n", i+1))
+	}
+	inputFile.Close()
+
+	inputFile, _ = os.Open(inputFilePath)
+
+	splitByChunkCount(inputFile, tempDir, 10)
+
+	for i, filename := 0, "xaa"; i < 10; i, filename = i+1, incrementString(filename) {
+		outputFile, err := os.Open(filepath.Join(tempDir, filename))
+		if err != nil {
+			t.Errorf("Expected file %s, got error %v", filename, err)
+			continue
+		}
+		content, err := io.ReadAll(outputFile)
+		if err != nil {
+			t.Errorf("Expected file %s to be readable, got error %v", filename, err)
+			continue
+		}
+		if len(string(content)) != 5 {
+			t.Errorf("Expected 5 length in file %s, got %d: %s", filename, len(string(content)), string(content))
+		}
+		outputFile.Close()
+	}
+}
