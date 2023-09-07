@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 )
@@ -78,14 +79,22 @@ func incrementString(s string) string {
 }
 
 func splitByLineCount(file *os.File, dir string, lineCount int) int {
-	scanner := bufio.NewScanner(file)
+	reader := bufio.NewReader(file)
 	filename := prefix + "aa"
 
 	var f *os.File
 	var err error
 
 	l := lineCount
-	for scanner.Scan() {
+	for {
+		line, readErr := reader.ReadString('\n')
+		if len(line) == 0 && readErr != nil {
+			if readErr != io.EOF {
+				fmt.Fprintf(os.Stderr, "cannot read file: %v\n", readErr)
+				return 1
+			}
+			break
+		}
 		if f == nil {
 			f, err = os.Create(filepath.Join(dir, filename))
 			if err != nil {
@@ -93,7 +102,7 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 				return 1
 			}
 		}
-		f.WriteString(scanner.Text())
+		f.WriteString(line)
 		l--
 		if l == 0 {
 			f.Close()

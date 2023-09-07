@@ -54,7 +54,7 @@ func TestSplitByLineCount(t *testing.T) {
 			splitByLineCount(inputFile, dir, 10)
 
 			if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
-				t.Errorf("Unexpected file xaa")
+				t.Errorf("%s: Unexpected file xaa", tc.name)
 			}
 		}
 	})
@@ -67,10 +67,16 @@ func TestSplitByLineCount(t *testing.T) {
 			expectedContents []string
 		}{
 			{
-				name:             "1 line",
+				name:             "1 line, 1 file",
 				content:          "a",
 				splitCount:       1,
 				expectedContents: []string{"a"},
+			},
+			{
+				name:             "2 line, 1 file",
+				content:          "a\nb",
+				splitCount:       2,
+				expectedContents: []string{"a\nb"},
 			},
 		}
 
@@ -89,22 +95,22 @@ func TestSplitByLineCount(t *testing.T) {
 			for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementString(filename) {
 				outputFile, err := os.Open(filepath.Join(dir, filename))
 				if err != nil {
-					t.Errorf("Expected file %s, got error %v", filename, err)
+					t.Errorf("%s: Expected file %s, got error %v", tc.name, filename, err)
 					continue
 				}
 				content, err := io.ReadAll(outputFile)
 				if err != nil {
-					t.Errorf("Expected file %s to be readable, got error %v", filename, err)
+					t.Errorf("%s: Expected file %s to be readable, got error %v", tc.name, filename, err)
 					continue
 				}
 				if string(content) != tc.expectedContents[i] {
-					t.Errorf("Expected %s in file %s, got %s", tc.expectedContents[i], filename, string(content))
+					t.Errorf("%s: Expected %s in file %s, got %s", tc.name, tc.expectedContents[i], filename, string(content))
 				}
 				outputFile.Close()
 			}
 
 			if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
-				t.Errorf("Unexpected file %s", filename)
+				t.Errorf("%s: Unexpected file %s", tc.name, filename)
 			}
 		}
 	})
