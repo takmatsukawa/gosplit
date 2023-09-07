@@ -55,6 +55,8 @@ func TestSplitByLineCount(t *testing.T) {
 			if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
 				t.Errorf("%s: Unexpected file xaa", tc.name)
 			}
+
+			inputFile.Close()
 		}
 	})
 
@@ -117,6 +119,8 @@ func TestSplitByLineCount(t *testing.T) {
 			if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
 				t.Errorf("%s: Unexpected file %s", tc.name, filename)
 			}
+
+			inputFile.Close()
 		}
 	})
 }
@@ -186,6 +190,8 @@ func TestSplitByChunkCount(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
 			t.Errorf("%s: Unexpected file %s", tc.name, filename)
 		}
+
+		inputFile.Close()
 	}
 }
 
@@ -215,6 +221,8 @@ func TestSplitByByteCount(t *testing.T) {
 			if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
 				t.Errorf("%s: Unexpected file xaa", tc.name)
 			}
+
+			inputFile.Close()
 		}
 	})
 
@@ -271,6 +279,8 @@ func TestSplitByByteCount(t *testing.T) {
 			if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
 				t.Errorf("%s: Unexpected file %s", tc.name, filename)
 			}
+
+			inputFile.Close()
 		}
 	})
 }
