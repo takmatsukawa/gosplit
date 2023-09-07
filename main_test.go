@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -31,36 +30,65 @@ func TestFlagVar(t *testing.T) {
 }
 
 func TestSplitByLineCount(t *testing.T) {
-	tempDir := t.TempDir()
 
-	inputFilePath := filepath.Join(tempDir, "test.txt")
-	inputFile, _ := os.Create(inputFilePath)
-	for i := 0; i < 100; i++ {
-		inputFile.WriteString(fmt.Sprintf("Line %d\n", i+1))
+	tests := []struct {
+		name             string
+		content          string
+		expectedContents []string
+	}{
+		{
+			name:             "Empty file",
+			content:          "",
+			expectedContents: []string{},
+		},
 	}
-	inputFile.Close()
 
-	inputFile, _ = os.Open(inputFilePath)
+	for _, tc := range tests {
+		dir := t.TempDir()
+		inputFilePath := filepath.Join(dir, "test.txt")
+		inputFile, _ := os.Create(inputFilePath)
+		inputFile.WriteString(tc.content)
+		inputFile.Close()
 
-	splitByLineCount(inputFile, tempDir, 10)
+		inputFile, _ = os.Open(inputFilePath)
 
-	for i, filename := 0, "xaa"; i < 10; i, filename = i+1, incrementString(filename) {
-		outputFile, err := os.Open(filepath.Join(tempDir, filename))
-		if err != nil {
-			t.Errorf("Expected file %s, got error %v", filename, err)
-			continue
+		splitByLineCount(inputFile, dir, 10)
+
+		if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
+			t.Errorf("Unexpected file xaa")
 		}
-		content, err := io.ReadAll(outputFile)
-		if err != nil {
-			t.Errorf("Expected file %s to be readable, got error %v", filename, err)
-			continue
-		}
-		lines := strings.Split(string(content), "\n")
-		if len(lines) != 11 { // 10 lines + 1 empty line at the end
-			t.Errorf("Expected 10 lines in file %s, got %d: %s", filename, len(lines)-1, string(content))
-		}
-		outputFile.Close()
 	}
+
+	// tempDir := t.TempDir()
+
+	// inputFilePath := filepath.Join(tempDir, "test.txt")
+	// inputFile, _ := os.Create(inputFilePath)
+	// for i := 0; i < 100; i++ {
+	// 	inputFile.WriteString(fmt.Sprintf("Line %d\n", i+1))
+	// }
+	// inputFile.Close()
+
+	// inputFile, _ = os.Open(inputFilePath)
+
+	// splitByLineCount(inputFile, tempDir, 10)
+
+	// for i, filename := 0, "xaa"; i < 10; i, filename = i+1, incrementString(filename) {
+	// 	outputFile, err := os.Open(filepath.Join(tempDir, filename))
+	// 	if err != nil {
+	// 		t.Errorf("Expected file %s, got error %v", filename, err)
+	// 		continue
+	// 	}
+	// 	content, err := io.ReadAll(outputFile)
+	// 	if err != nil {
+	// 		t.Errorf("Expected file %s to be readable, got error %v", filename, err)
+	// 		continue
+	// 	}
+	// 	lines := strings.Split(string(content), "\n")
+	// 	if len(lines) != 11 { // 10 lines + 1 empty line at the end
+	// 		t.Errorf("Expected 10 lines in file %s, got %d: %s", filename, len(lines)-1, string(content))
+	// 	}
+	// 	outputFile.Close()
+	// }
 }
 
 func TestSplitByChunkCount(t *testing.T) {

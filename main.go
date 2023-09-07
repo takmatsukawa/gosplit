@@ -81,24 +81,24 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 	scanner := bufio.NewScanner(file)
 	filename := prefix + "aa"
 
-	f, err := os.Create(filepath.Join(dir, filename))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
-		return 1
-	}
+	var f *os.File
+	var err error
 
 	l := lineCount
 	for scanner.Scan() {
-		f.WriteString(scanner.Text() + "\n")
-		l--
-		if l == 0 {
-			f.Close()
-			filename = incrementString(filename)
+		if f == nil {
 			f, err = os.Create(filepath.Join(dir, filename))
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
 				return 1
 			}
+		}
+		f.WriteString(scanner.Text() + "\n")
+		l--
+		if l == 0 {
+			f.Close()
+			f = nil
+			filename = incrementString(filename)
 			l = lineCount
 		}
 	}
