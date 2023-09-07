@@ -37,10 +37,10 @@ func run(args []string, dir string) int {
 
 	result := 0
 	switch {
-	case commandLine.NFlag() > 1: // lとnとbは同時に指定できない
+	case commandLine.NFlag() > 1: // Multiple flags cannot be specified at the same time
 		fmt.Fprintf(os.Stderr, "cannot split in more than one way\n")
 		result = 1
-	case commandLine.NFlag() == 0:
+	case commandLine.NFlag() == 0: // No flags specified
 		result = splitByLineCount(file, dir, 1000)
 	case *lineCount > 0:
 		result = splitByLineCount(file, dir, *lineCount)
@@ -56,7 +56,7 @@ func run(args []string, dir string) int {
 	return result
 }
 
-func incrementString(s string) string {
+func incrementLastChar(s string) string {
 	runes := []rune(s)
 	carry := true
 
@@ -106,7 +106,7 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 		if l == 0 {
 			f.Close()
 			f = nil
-			filename = incrementString(filename)
+			filename = incrementLastChar(filename)
 			l = lineCount
 		}
 	}
@@ -119,13 +119,13 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 	fi, err := file.Stat()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot determine file size\n")
+		fmt.Fprintf(os.Stderr, "cannot determine file size: %v\n", err)
 		return 1
 	}
 
 	size := fi.Size() / int64(chunkCount)
 
-	for i, filename := 0, prefix+"aa"; i < chunkCount; i, filename = i+1, incrementString(filename) {
+	for i, filename := 0, prefix+"aa"; i < chunkCount; i, filename = i+1, incrementLastChar(filename) {
 		f, err := os.Create(filepath.Join(dir, filename))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
@@ -149,7 +149,7 @@ func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 func splitByByteCount(file *os.File, dir string, byteCount int) int {
 	reader := bufio.NewReader(file)
 
-	for filename := prefix + "aa"; ; filename = incrementString(filename) {
+	for filename := prefix + "aa"; ; filename = incrementLastChar(filename) {
 		buffer := make([]byte, byteCount)
 		_, err := reader.Read(buffer)
 		if err != nil {

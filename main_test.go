@@ -13,8 +13,8 @@ func TestFlagVar(t *testing.T) {
 		args []string
 		want int
 	}{
-		"引数未指定":           {args: []string{}, want: 0},
-		"lとnとbは同時に指定できない": {args: []string{"-l", "1", "-n", "1", "-b", "1"}, want: 1},
+		"argument not specified":                              {args: []string{}, want: 0},
+		"Multiple flags cannot be specified at the same time": {args: []string{"-l", "1", "-n", "1", "-b", "1"}, want: 1},
 	}
 	for name, tt := range tests {
 		tt := tt
@@ -101,7 +101,7 @@ func TestSplitByLineCount(t *testing.T) {
 				splitByLineCount(inputFile, dir, tc.splitCount)
 
 				filename := "xaa"
-				for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementString(filename) {
+				for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementLastChar(filename) {
 					outputFile, err := os.Open(filepath.Join(dir, filename))
 					if err != nil {
 						t.Errorf("Expected file %s, got error %v", filename, err)
@@ -118,7 +118,7 @@ func TestSplitByLineCount(t *testing.T) {
 					outputFile.Close()
 				}
 
-				if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
+				if _, err := os.Stat(filepath.Join(dir, incrementLastChar(filename))); err == nil { // 余分なファイルが存在する
 					t.Errorf("Unexpected file %s", filename)
 				}
 
@@ -172,7 +172,7 @@ func TestSplitByChunkCount(t *testing.T) {
 			splitByChunkCount(inputFile, dir, tc.chunkCount)
 
 			filename := "xaa"
-			for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementString(filename) {
+			for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementLastChar(filename) {
 				outputFile, err := os.Open(filepath.Join(dir, filename))
 				if err != nil {
 					t.Errorf("Expected file %s, got error %v", filename, err)
@@ -189,7 +189,7 @@ func TestSplitByChunkCount(t *testing.T) {
 				outputFile.Close()
 			}
 
-			if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
+			if _, err := os.Stat(filepath.Join(dir, incrementLastChar(filename))); err == nil { // 余分なファイルが存在する
 				t.Errorf("Unexpected file %s", filename)
 			}
 
@@ -266,7 +266,7 @@ func TestSplitByByteCount(t *testing.T) {
 				splitByByteCount(inputFile, dir, tt.byteCount)
 
 				filename := "xaa"
-				for i := 0; i < len(tt.expectedContents); i, filename = i+1, incrementString(filename) {
+				for i := 0; i < len(tt.expectedContents); i, filename = i+1, incrementLastChar(filename) {
 					outputFile, err := os.Open(filepath.Join(dir, filename))
 					if err != nil {
 						t.Errorf("Expected file %s, got error %v", filename, err)
@@ -283,7 +283,7 @@ func TestSplitByByteCount(t *testing.T) {
 					outputFile.Close()
 				}
 
-				if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
+				if _, err := os.Stat(filepath.Join(dir, incrementLastChar(filename))); err == nil { // 余分なファイルが存在する
 					t.Errorf("Unexpected file %s", filename)
 				}
 
@@ -293,7 +293,7 @@ func TestSplitByByteCount(t *testing.T) {
 	})
 }
 
-func TestIncrementString(t *testing.T) {
+func TestIncrementLastChar(t *testing.T) {
 	tests := []struct {
 		in   string
 		want string
@@ -303,7 +303,7 @@ func TestIncrementString(t *testing.T) {
 		{in: "xzy", want: "xzz"},
 	}
 	for _, tt := range tests {
-		if got := incrementString(tt.in); got != tt.want {
+		if got := incrementLastChar(tt.in); got != tt.want {
 			t.Errorf("incrementString(\"%s\") = %v, want %v", tt.in, got, tt.want)
 		}
 	}
