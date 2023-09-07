@@ -284,3 +284,19 @@ func TestSplitByByteCount(t *testing.T) {
 		}
 	})
 }
+
+func TestIncrementString(t *testing.T) {
+	tests := []struct {
+		in   string
+		want string
+	}{
+		{in: "xaa", want: "xab"},
+		{in: "xaz", want: "xba"},
+		{in: "xzy", want: "xzz"},
+	}
+	for _, tt := range tests {
+		if got := incrementString(tt.in); got != tt.want {
+			t.Errorf("incrementString(\"%s\") = %v, want %v", tt.in, got, tt.want)
+		}
+	}
+}
