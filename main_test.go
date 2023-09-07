@@ -31,33 +31,78 @@ func TestFlagVar(t *testing.T) {
 
 func TestSplitByLineCount(t *testing.T) {
 
-	tests := []struct {
-		name             string
-		content          string
-		expectedContents []string
-	}{
-		{
-			name:             "Empty file",
-			content:          "",
-			expectedContents: []string{},
-		},
-	}
-
-	for _, tc := range tests {
-		dir := t.TempDir()
-		inputFilePath := filepath.Join(dir, "test.txt")
-		inputFile, _ := os.Create(inputFilePath)
-		inputFile.WriteString(tc.content)
-		inputFile.Close()
-
-		inputFile, _ = os.Open(inputFilePath)
-
-		splitByLineCount(inputFile, dir, 10)
-
-		if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
-			t.Errorf("Unexpected file xaa")
+	t.Run("No file created", func(t *testing.T) {
+		tests := []struct {
+			name    string
+			content string
+		}{
+			{
+				name:    "Empty file",
+				content: "",
+			},
 		}
-	}
+
+		for _, tc := range tests {
+			dir := t.TempDir()
+			inputFilePath := filepath.Join(dir, "test.txt")
+			inputFile, _ := os.Create(inputFilePath)
+			inputFile.WriteString(tc.content)
+			inputFile.Close()
+
+			inputFile, _ = os.Open(inputFilePath)
+
+			splitByLineCount(inputFile, dir, 10)
+
+			if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
+				t.Errorf("Unexpected file xaa")
+			}
+		}
+	})
+
+	t.Run("More than 1 file created", func(t *testing.T) {
+		tests := []struct {
+			name             string
+			content          string
+			splitCount       int
+			expectedContents []string
+		}{
+			{
+				name:             "1 line",
+				content:          "a",
+				splitCount:       1,
+				expectedContents: []string{"a"},
+			},
+		}
+
+		for _, tc := range tests {
+			dir := t.TempDir()
+			inputFilePath := filepath.Join(dir, "test.txt")
+			inputFile, _ := os.Create(inputFilePath)
+			inputFile.WriteString(tc.content)
+			inputFile.Close()
+
+			inputFile, _ = os.Open(inputFilePath)
+
+			splitByLineCount(inputFile, dir, tc.splitCount)
+
+			for i, filename := 0, "xaa"; i < len(tc.expectedContents); i, filename = i+1, incrementString(filename) {
+				outputFile, err := os.Open(filepath.Join(dir, filename))
+				if err != nil {
+					t.Errorf("Expected file %s, got error %v", filename, err)
+					continue
+				}
+				content, err := io.ReadAll(outputFile)
+				if err != nil {
+					t.Errorf("Expected file %s to be readable, got error %v", filename, err)
+					continue
+				}
+				if string(content) != tc.expectedContents[i] {
+					t.Errorf("Expected %s in file %s, got %s", tc.expectedContents[i], filename, string(content))
+				}
+				outputFile.Close()
+			}
+		}
+	})
 
 	// tempDir := t.TempDir()
 

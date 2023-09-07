@@ -93,7 +93,7 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 				return 1
 			}
 		}
-		f.WriteString(scanner.Text() + "\n")
+		f.WriteString(scanner.Text())
 		l--
 		if l == 0 {
 			f.Close()
