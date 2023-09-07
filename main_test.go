@@ -190,33 +190,87 @@ func TestSplitByChunkCount(t *testing.T) {
 }
 
 func TestSplitByByteCount(t *testing.T) {
-	// tempDir := t.TempDir()
+	t.Run("No file created", func(t *testing.T) {
+		tests := []struct {
+			name    string
+			content string
+		}{
+			{
+				name:    "Empty file",
+				content: "",
+			},
+		}
 
-	// inputFilePath := filepath.Join(tempDir, "test.txt")
-	// inputFile, _ := os.Create(inputFilePath)
-	// for i := 0; i < 10; i++ {
-	// 	inputFile.WriteString(fmt.Sprintf("%09d\n", i+1))
-	// }
-	// inputFile.Close()
+		for _, tc := range tests {
+			dir := t.TempDir()
+			inputFilePath := filepath.Join(dir, "test.txt")
+			inputFile, _ := os.Create(inputFilePath)
+			inputFile.WriteString(tc.content)
+			inputFile.Close()
 
-	// inputFile, _ = os.Open(inputFilePath)
+			inputFile, _ = os.Open(inputFilePath)
 
-	// splitByByteCount(inputFile, tempDir, 10)
+			splitByByteCount(inputFile, dir, 10)
 
-	// for i, filename := 0, "xaa"; i < 10; i, filename = i+1, incrementString(filename) {
-	// 	outputFile, err := os.Open(filepath.Join(tempDir, filename))
-	// 	if err != nil {
-	// 		t.Errorf("Expected file %s, got error %v", filename, err)
-	// 		continue
-	// 	}
-	// 	content, err := io.ReadAll(outputFile)
-	// 	if err != nil {
-	// 		t.Errorf("Expected file %s to be readable, got error %v", filename, err)
-	// 		continue
-	// 	}
-	// 	if len(string(content)) != 10 {
-	// 		t.Errorf("Expected 10 length in file %s, got %d: %s", filename, len(string(content)), string(content))
-	// 	}
-	// 	outputFile.Close()
-	// }
+			if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
+				t.Errorf("%s: Unexpected file xaa", tc.name)
+			}
+		}
+	})
+
+	t.Run("More than 1 file created", func(t *testing.T) {
+		tests := []struct {
+			name             string
+			content          string
+			byteCount        int
+			expectedContents []string
+		}{
+			{
+				name:             "A file into 1 file",
+				content:          "a",
+				byteCount:        1,
+				expectedContents: []string{"a"},
+			},
+			{
+				name:             "A file into 2 file",
+				content:          "ab",
+				byteCount:        1,
+				expectedContents: []string{"a", "b"},
+			},
+		}
+
+		for _, tc := range tests {
+			dir := t.TempDir()
+			inputFilePath := filepath.Join(dir, "test.txt")
+			inputFile, _ := os.Create(inputFilePath)
+			inputFile.WriteString(tc.content)
+			inputFile.Close()
+
+			inputFile, _ = os.Open(inputFilePath)
+
+			splitByByteCount(inputFile, dir, tc.byteCount)
+
+			filename := "xaa"
+			for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementString(filename) {
+				outputFile, err := os.Open(filepath.Join(dir, filename))
+				if err != nil {
+					t.Errorf("%s: Expected file %s, got error %v", tc.name, filename, err)
+					continue
+				}
+				content, err := io.ReadAll(outputFile)
+				if err != nil {
+					t.Errorf("%s: Expected file %s to be readable, got error %v", tc.name, filename, err)
+					continue
+				}
+				if string(content) != tc.expectedContents[i] {
+					t.Errorf("%s: Expected %s in file %s, got %s", tc.name, tc.expectedContents[i], filename, string(content))
+				}
+				outputFile.Close()
+			}
+
+			if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
+				t.Errorf("%s: Unexpected file %s", tc.name, filename)
+			}
+		}
+	})
 }
