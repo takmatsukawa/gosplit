@@ -20,6 +20,7 @@ func run(args []string, dir string) int {
 	byteCount := commandLine.Int("b", 0, "Create split files byte_count bytes in length.")
 	if err := commandLine.Parse(args); err != nil {
 		fmt.Fprintf(os.Stderr, "cannnot parse flags: %v\n", err)
+		return 1
 	}
 
 	var file *os.File
