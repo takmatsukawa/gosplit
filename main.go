@@ -41,15 +41,16 @@ func run(args []string, dir string) int {
 	}
 
 	result := 0
-	if commandLine.NFlag() == 0 {
+	switch {
+	case commandLine.NFlag() == 0:
 		result = splitByLineCount(file, dir, 1000)
-	} else if *lineCount > 0 {
+	case *lineCount > 0:
 		result = splitByLineCount(file, dir, *lineCount)
-	} else if *chunkCount > 0 {
+	case *chunkCount > 0:
 		result = splitByChunkCount(file, dir, *chunkCount)
-	} else if *byteCount > 0 {
+	case *byteCount > 0:
 		result = splitByByteCount(file, dir, *byteCount)
-	} else {
+	default:
 		fmt.Fprintf(os.Stderr, "invalid flag\n")
 		result = 1
 	}
