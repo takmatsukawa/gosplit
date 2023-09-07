@@ -141,7 +141,7 @@ func (sp *FileSplitter) splitByChunkCount(file *os.File, dir string, chunkCount 
 			return 1
 		}
 
-		// 最後のチャンクでは残り全て読み込む
+		// The last chunk reads all the rest.
 		if i == chunkCount-1 {
 			size = fi.Size() - size*int64(i)
 		}
