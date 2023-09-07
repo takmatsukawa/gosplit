@@ -34,14 +34,11 @@ func run(args []string, dir string) int {
 		return 1
 	}
 
-	// lとnとbは同時に指定できない
-	if commandLine.NFlag() > 1 {
-		fmt.Fprintf(os.Stderr, "cannot split in more than one way\n")
-		return 1
-	}
-
 	result := 0
 	switch {
+	case commandLine.NFlag() > 1: // lとnとbは同時に指定できない
+		fmt.Fprintf(os.Stderr, "cannot split in more than one way\n")
+		result = 1
 	case commandLine.NFlag() == 0:
 		result = splitByLineCount(file, dir, 1000)
 	case *lineCount > 0:
