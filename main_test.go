@@ -85,7 +85,8 @@ func TestSplitByLineCount(t *testing.T) {
 
 			splitByLineCount(inputFile, dir, tc.splitCount)
 
-			for i, filename := 0, "xaa"; i < len(tc.expectedContents); i, filename = i+1, incrementString(filename) {
+			filename := "xaa"
+			for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementString(filename) {
 				outputFile, err := os.Open(filepath.Join(dir, filename))
 				if err != nil {
 					t.Errorf("Expected file %s, got error %v", filename, err)
@@ -100,6 +101,10 @@ func TestSplitByLineCount(t *testing.T) {
 					t.Errorf("Expected %s in file %s, got %s", tc.expectedContents[i], filename, string(content))
 				}
 				outputFile.Close()
+			}
+
+			if _, err := os.Stat(filepath.Join(dir, incrementString(filename))); err == nil { // 余分なファイルが存在する
+				t.Errorf("Unexpected file %s", filename)
 			}
 		}
 	})
