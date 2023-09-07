@@ -19,5 +19,5 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
-      - run: go test ./...
+      - run: go test -race -shuffle ./...
       - run: go test -bench . -benchmem
