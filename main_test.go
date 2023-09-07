@@ -29,6 +29,8 @@ func TestFlagVar(t *testing.T) {
 
 func TestSplitByLineCount(t *testing.T) {
 
+	sp := NewFileSplitter()
+
 	t.Run("No file created", func(t *testing.T) {
 		tests := map[string]struct {
 			content string
@@ -51,7 +53,7 @@ func TestSplitByLineCount(t *testing.T) {
 
 				inputFile, _ = os.Open(inputFilePath)
 
-				splitByLineCount(inputFile, dir, 10)
+				sp.splitByLineCount(inputFile, dir, 10)
 
 				if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
 					t.Errorf("Unexpected file xaa")
@@ -98,7 +100,7 @@ func TestSplitByLineCount(t *testing.T) {
 
 				inputFile, _ = os.Open(inputFilePath)
 
-				splitByLineCount(inputFile, dir, tc.splitCount)
+				sp.splitByLineCount(inputFile, dir, tc.splitCount)
 
 				filename := "xaa"
 				for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementLastChar(filename) {
@@ -129,6 +131,9 @@ func TestSplitByLineCount(t *testing.T) {
 }
 
 func TestSplitByChunkCount(t *testing.T) {
+
+	sp := NewFileSplitter()
+
 	tests := map[string]struct {
 		content          string
 		chunkCount       int
@@ -169,7 +174,7 @@ func TestSplitByChunkCount(t *testing.T) {
 
 			inputFile, _ = os.Open(inputFilePath)
 
-			splitByChunkCount(inputFile, dir, tc.chunkCount)
+			sp.splitByChunkCount(inputFile, dir, tc.chunkCount)
 
 			filename := "xaa"
 			for i := 0; i < len(tc.expectedContents); i, filename = i+1, incrementLastChar(filename) {
@@ -199,6 +204,9 @@ func TestSplitByChunkCount(t *testing.T) {
 }
 
 func TestSplitByByteCount(t *testing.T) {
+
+	sp := NewFileSplitter()
+
 	t.Run("No file created", func(t *testing.T) {
 		tests := map[string]struct {
 			content string
@@ -221,7 +229,7 @@ func TestSplitByByteCount(t *testing.T) {
 
 				inputFile, _ = os.Open(inputFilePath)
 
-				splitByByteCount(inputFile, dir, 10)
+				sp.splitByByteCount(inputFile, dir, 10)
 
 				if _, err := os.Stat(filepath.Join(dir, "xaa")); err == nil { // xaaが存在する
 					t.Errorf("Unexpected file xaa")
@@ -263,7 +271,7 @@ func TestSplitByByteCount(t *testing.T) {
 
 				inputFile, _ = os.Open(inputFilePath)
 
-				splitByByteCount(inputFile, dir, tt.byteCount)
+				sp.splitByByteCount(inputFile, dir, tt.byteCount)
 
 				filename := "xaa"
 				for i := 0; i < len(tt.expectedContents); i, filename = i+1, incrementLastChar(filename) {

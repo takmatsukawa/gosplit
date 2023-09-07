@@ -9,9 +9,16 @@ import (
 	"path/filepath"
 )
 
+type FileSplitter struct {
+	prefix string
+}
+
+func NewFileSplitter() *FileSplitter {
+	return &FileSplitter{prefix: "x"}
+}
+
 var (
 	commandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	prefix      = "x"
 )
 
 func run(args []string, dir string) int {
@@ -35,19 +42,21 @@ func run(args []string, dir string) int {
 		return 1
 	}
 
+	sp := NewFileSplitter()
+
 	result := 0
 	switch {
 	case commandLine.NFlag() > 1: // Multiple flags cannot be specified at the same time
 		fmt.Fprintf(os.Stderr, "cannot split in more than one way\n")
 		result = 1
 	case commandLine.NFlag() == 0: // No flags specified
-		result = splitByLineCount(file, dir, 1000)
+		result = sp.splitByLineCount(file, dir, 1000)
 	case *lineCount > 0:
-		result = splitByLineCount(file, dir, *lineCount)
+		result = sp.splitByLineCount(file, dir, *lineCount)
 	case *chunkCount > 0:
-		result = splitByChunkCount(file, dir, *chunkCount)
+		result = sp.splitByChunkCount(file, dir, *chunkCount)
 	case *byteCount > 0:
-		result = splitByByteCount(file, dir, *byteCount)
+		result = sp.splitByByteCount(file, dir, *byteCount)
 	default:
 		fmt.Fprintf(os.Stderr, "invalid flag\n")
 		result = 1
@@ -77,9 +86,9 @@ func incrementLastChar(s string) string {
 	return string(runes)
 }
 
-func splitByLineCount(file *os.File, dir string, lineCount int) int {
+func (sp *FileSplitter) splitByLineCount(file *os.File, dir string, lineCount int) int {
 	reader := bufio.NewReader(file)
-	filename := prefix + "aa"
+	filename := sp.prefix + "aa"
 
 	var f *os.File
 	var err error
@@ -116,7 +125,7 @@ func splitByLineCount(file *os.File, dir string, lineCount int) int {
 	return 0
 }
 
-func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
+func (sp *FileSplitter) splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 	fi, err := file.Stat()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "cannot determine file size: %v\n", err)
@@ -125,7 +134,7 @@ func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 
 	size := fi.Size() / int64(chunkCount)
 
-	for i, filename := 0, prefix+"aa"; i < chunkCount; i, filename = i+1, incrementLastChar(filename) {
+	for i, filename := 0, sp.prefix+"aa"; i < chunkCount; i, filename = i+1, incrementLastChar(filename) {
 		f, err := os.Create(filepath.Join(dir, filename))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "cannot create file: %v\n", err)
@@ -146,10 +155,10 @@ func splitByChunkCount(file *os.File, dir string, chunkCount int) int {
 	return 0
 }
 
-func splitByByteCount(file *os.File, dir string, byteCount int) int {
+func (sp *FileSplitter) splitByByteCount(file *os.File, dir string, byteCount int) int {
 	reader := bufio.NewReader(file)
 
-	for filename := prefix + "aa"; ; filename = incrementLastChar(filename) {
+	for filename := sp.prefix + "aa"; ; filename = incrementLastChar(filename) {
 		buffer := make([]byte, byteCount)
 		_, err := reader.Read(buffer)
 		if err != nil {
