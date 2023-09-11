@@ -17,75 +17,6 @@ func NewFileSplitter() *FileSplitter {
 	return &FileSplitter{prefix: "x"}
 }
 
-var (
-	commandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-)
-
-func run(args []string, dir string) int {
-	lineCount := commandLine.Int("l", 0, "Create split files line_count lines in length.")
-	chunkCount := commandLine.Int("n", 0, "Split file into chunk_count smaller files.  The first n - 1 files will be of size (size of file / chunk_count ) and the last file will contain the remaining bytes.")
-	byteCount := commandLine.Int("b", 0, "Create split files byte_count bytes in length.")
-	if err := commandLine.Parse(args); err != nil {
-		fmt.Fprintf(os.Stderr, "cannnot parse flags: %v\n", err)
-		return 1
-	}
-
-	var file *os.File
-	var err error
-	if commandLine.NArg() == 0 {
-		file = os.Stdin
-	} else {
-		file, err = os.Open(commandLine.Arg(0))
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "cannot open file: %v\n", err)
-		return 1
-	}
-
-	sp := NewFileSplitter()
-
-	result := 0
-	switch {
-	case commandLine.NFlag() > 1: // Multiple flags cannot be specified at the same time
-		fmt.Fprintf(os.Stderr, "cannot split in more than one way\n")
-		result = 1
-	case commandLine.NFlag() == 0: // No flags specified
-		result = sp.splitByLineCount(file, dir, 1000)
-	case *lineCount > 0:
-		result = sp.splitByLineCount(file, dir, *lineCount)
-	case *chunkCount > 0:
-		result = sp.splitByChunkCount(file, dir, *chunkCount)
-	case *byteCount > 0:
-		result = sp.splitByByteCount(file, dir, *byteCount)
-	default:
-		fmt.Fprintf(os.Stderr, "invalid flag\n")
-		result = 1
-	}
-
-	return result
-}
-
-func incrementLastChar(s string) string {
-	runes := []rune(s)
-	carry := true
-
-	for i := len(runes) - 1; i >= 0; i-- {
-		if runes[i] < 'z' {
-			runes[i]++
-			carry = false
-			break
-		} else {
-			runes[i] = 'a'
-		}
-	}
-
-	if carry {
-		runes = append([]rune{'a'}, runes...)
-	}
-
-	return string(runes)
-}
-
 func (sp *FileSplitter) splitByLineCount(file *os.File, dir string, lineCount int) int {
 	reader := bufio.NewReader(file)
 	filename := sp.prefix + "aa"
@@ -176,6 +107,75 @@ func (sp *FileSplitter) splitByByteCount(file *os.File, dir string, byteCount in
 	}
 
 	return 0
+}
+
+var (
+	commandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+)
+
+func run(args []string, dir string) int {
+	lineCount := commandLine.Int("l", 0, "Create split files line_count lines in length.")
+	chunkCount := commandLine.Int("n", 0, "Split file into chunk_count smaller files.  The first n - 1 files will be of size (size of file / chunk_count ) and the last file will contain the remaining bytes.")
+	byteCount := commandLine.Int("b", 0, "Create split files byte_count bytes in length.")
+	if err := commandLine.Parse(args); err != nil {
+		fmt.Fprintf(os.Stderr, "cannnot parse flags: %v\n", err)
+		return 1
+	}
+
+	var file *os.File
+	var err error
+	if commandLine.NArg() == 0 {
+		file = os.Stdin
+	} else {
+		file, err = os.Open(commandLine.Arg(0))
+	}
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot open file: %v\n", err)
+		return 1
+	}
+
+	sp := NewFileSplitter()
+
+	result := 0
+	switch {
+	case commandLine.NFlag() > 1: // Multiple flags cannot be specified at the same time
+		fmt.Fprintf(os.Stderr, "cannot split in more than one way\n")
+		result = 1
+	case commandLine.NFlag() == 0: // No flags specified
+		result = sp.splitByLineCount(file, dir, 1000)
+	case *lineCount > 0:
+		result = sp.splitByLineCount(file, dir, *lineCount)
+	case *chunkCount > 0:
+		result = sp.splitByChunkCount(file, dir, *chunkCount)
+	case *byteCount > 0:
+		result = sp.splitByByteCount(file, dir, *byteCount)
+	default:
+		fmt.Fprintf(os.Stderr, "invalid flag\n")
+		result = 1
+	}
+
+	return result
+}
+
+func incrementLastChar(s string) string {
+	runes := []rune(s)
+	carry := true
+
+	for i := len(runes) - 1; i >= 0; i-- {
+		if runes[i] < 'z' {
+			runes[i]++
+			carry = false
+			break
+		} else {
+			runes[i] = 'a'
+		}
+	}
+
+	if carry {
+		runes = append([]rune{'a'}, runes...)
+	}
+
+	return string(runes)
 }
 
 func main() {
